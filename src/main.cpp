@@ -30,7 +30,7 @@ int led_toggle_delay = 1000;
 float loop_count = 0;
 uint32_t start_time_s = 0;
 
-DataSaverBigSD dataSaver;
+DataSaverBigSD dataSaver(SD_CS);
 
 Adafruit_BMP3XX     bmp180;
 SensorDataHandler   bmp180_pressureData(CURE_BMP180_PRESSURE, &dataSaver);

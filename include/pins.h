@@ -6,6 +6,7 @@
 #define BMP180_ADDRESS 0x77
 #define BMP388_ADDRESS 0x77
 #define DEBUG_LED 13
+#define SD_CS 10
  
 
 #endif 
