@@ -9,6 +9,7 @@
   #include "Adafruit_LSM6DSOX.h"
   #include "Adafruit_LIS3MDL.h"
   #include <Async_BMP3XX.h>
+  #include <Adafruit_BMP085.h>
   #include "Adafruit_MPL3115A2.h"
 #endif
 
@@ -32,7 +33,7 @@ uint32_t start_time_s = 0;
 
 DataSaverBigSD dataSaver(SD_CS);
 
-Adafruit_BMP3XX     bmp180;
+Adafruit_BMP085 bmp180; 
 SensorDataHandler   bmp180_pressureData(CURE_BMP180_PRESSURE, &dataSaver);
 SensorDataHandler   bmp180_altitudeData(CURE_BMP180_ALTITUDE, &dataSaver);
 
@@ -51,24 +52,24 @@ void setup() {
   // while (!Serial) delay(10); // Wait for Serial Monitor (Comment out if not using)
 
   Serial.println("Setting up BMP180...");
-  while (!bmp180.begin_I2C(BMP180_ADDRESS)){
+  while (!bmp180.begin(BMP180_ADDRESS)){
     Serial.println("Could not find a valid BMP180 sensor, check wiring!");
     delay(10);
   }
 
 
-  Serial.println("Setting up BMP388...");
-  while (!bmp388.begin_I2C(BMP388_ADDRESS)){
-    Serial.println("Could not find a valid BMP388 sensor, check wiring!");
-    delay(10);
-  }
+  // Serial.println("Setting up BMP388...");
+  // while (!bmp388.begin_I2C(BMP388_ADDRESS)){
+  //   Serial.println("Could not find a valid BMP388 sensor, check wiring!");
+  //   delay(10);
+  // }
 
 
-  Serial.println("Setting up MPL3115A2...");
-  while (!mpl3115a2.begin()){
-    Serial.println("Could not find a valid MPL3115A2 sensor, check wiring!");
-    delay(10);
-  }
+  // Serial.println("Setting up MPL3115A2...");
+  // while (!mpl3115a2.begin()){
+  //   Serial.println("Could not find a valid MPL3115A2 sensor, check wiring!");
+  //   delay(10);
+  // }
 
   mpl3115a2.setMode(MPL3115A2_BAROMETER);
 
@@ -86,11 +87,9 @@ void setup() {
   start_time_s = millis() / 1000;
 
   // Start first conversions
-  bmp180.setConversionDelay(10);
-  bmp388.setConversionDelay(10);
-  bmp180.startConversion();
-  bmp388.startConversion();
-  mpl3115a2.startOneShot();
+  // bmp388.setConversionDelay(10);
+  // bmp388.startConversion();
+  // mpl3115a2.startOneShot();
 }
 
 float pressureToAltitude(float pressure) {
@@ -115,31 +114,32 @@ void loop() {
 
 
   // Save data from all three altimeters
-  if (bmp180.updateConversion()) {
-    float pressure = bmp180.getPressure();
-    float altitude = pressureToAltitude(pressure);
-    bmp180_pressureData.addData(DataPoint(current_time, pressure));
-    bmp180_altitudeData.addData(DataPoint(current_time, altitude));
+  float bmp180_pressure = bmp180.readPressure();
+  float bmp180_altitude = pressureToAltitude(bmp180_pressure);
+  bmp180_pressureData.addData(DataPoint(current_time, bmp180_pressure));
+  bmp180_altitudeData.addData(DataPoint(current_time, bmp180_altitude));
 
-    bmp180.startConversion();
-  }
+  Serial.print("BMP180 Pressure: ");
+  Serial.print(bmp180_pressure);
+  Serial.print(" Pa, Altitude: ");
+  Serial.print(bmp180_altitude);
 
-  if (bmp388.updateConversion()) {
-    float pressure = bmp388.getPressure();
-    float altitude = pressureToAltitude(pressure);
-    bmp388_pressureData.addData(DataPoint(current_time, pressure));
-    bmp388_altitudeData.addData(DataPoint(current_time, altitude));
+  // if (bmp388.updateConversion()) {
+  //   float pressure = bmp388.getPressure();
+  //   float altitude = pressureToAltitude(pressure);
+  //   bmp388_pressureData.addData(DataPoint(current_time, pressure));
+  //   bmp388_altitudeData.addData(DataPoint(current_time, altitude));
 
-    bmp388.startConversion();
-  }
+  //   bmp388.startConversion();
+  // }
 
-  if (mpl3115a2.conversionComplete()) {
-    float pressure = mpl3115a2.getLastConversionResults(MPL3115A2_PRESSURE);
-    float altitude = pressureToAltitude(pressure);
-    mpl3115a2_pressureData.addData(DataPoint(current_time, pressure));
-    mpl3115a2_altitudeData.addData(DataPoint(current_time, altitude));
-    mpl3115a2.startOneShot();
-  }
+  // if (mpl3115a2.conversionComplete()) {
+  //   float pressure = mpl3115a2.getLastConversionResults(MPL3115A2_PRESSURE);
+  //   float altitude = pressureToAltitude(pressure);
+  //   mpl3115a2_pressureData.addData(DataPoint(current_time, pressure));
+  //   mpl3115a2_altitudeData.addData(DataPoint(current_time, altitude));
+  //   mpl3115a2.startOneShot();
+  // }
 
   // Throttle to 100 Hz
   int too_fast = millis() - current_time;  // current_time was captured at the start of the loop
