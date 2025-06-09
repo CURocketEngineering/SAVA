@@ -71,7 +71,7 @@ void setup() {
   //   delay(10);
   // }
 
-  mpl3115a2.setMode(MPL3115A2_BAROMETER);
+  // mpl3115a2.setMode(MPL3115A2_BAROMETER);
 
   Serial.println("Setting up data saver...");
 
